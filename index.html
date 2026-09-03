@@ -1,0 +1,508 @@
+<title>2026 자산배분 설계서</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&family=Noto+Sans+KR:wght@300;400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F2F5F4; --surface:#FFFFFF; --surface-2:#E9EEEC;
+  --ink:#151A19; --ink-2:#3C4744; --muted:#6E7B77; --hair:#D3DCD8;
+  --accent:#12564C; --accent-soft:#DCEAE5;
+  --up:#C2372C;    /* 한국 증시 관례: 상승 = 빨강 */
+  --dn:#1F5FA8;    /* 하락 = 파랑 */
+  --warn:#B4761C;
+  --serif:"Noto Serif KR",Georgia,serif;
+  --sans:"Noto Sans KR",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --col:min(68rem,100% - 2.5rem);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0E1211; --surface:#161C1A; --surface-2:#1E2624;
+  --ink:#E7ECEA; --ink-2:#BAC5C1; --muted:#8B9793; --hair:#2C3735;
+  --accent:#5FBFA9; --accent-soft:#1B2E2A;
+  --up:#E8695C; --dn:#6FA6E8; --warn:#D9A552;
+}}
+:root[data-theme="dark"]{
+  --paper:#0E1211; --surface:#161C1A; --surface-2:#1E2624;
+  --ink:#E7ECEA; --ink-2:#BAC5C1; --muted:#8B9793; --hair:#2C3735;
+  --accent:#5FBFA9; --accent-soft:#1B2E2A;
+  --up:#E8695C; --dn:#6FA6E8; --warn:#D9A552;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+  font-weight:300;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{width:var(--col);margin-inline:auto}
+h1,h2,h3{font-family:var(--serif);font-weight:700;text-wrap:balance;line-height:1.3;margin:0}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.up{color:var(--up)} .dn{color:var(--dn)}
+
+/* ── 마스트헤드 ── */
+header{border-bottom:2px solid var(--ink);padding:3.5rem 0 1.25rem;margin-bottom:2.5rem}
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--accent);font-weight:600;margin-bottom:1rem}
+h1{font-size:clamp(2.1rem,5.5vw,3.4rem);letter-spacing:-.02em}
+.sub{color:var(--ink-2);font-size:1.05rem;margin:.9rem 0 1.4rem;max-width:44rem}
+.meta{display:flex;flex-wrap:wrap;gap:.5rem 1.75rem;font-family:var(--mono);font-size:.76rem;
+  color:var(--muted);border-top:1px solid var(--hair);padding-top:.9rem}
+.meta b{color:var(--ink-2);font-weight:500}
+
+/* ── 섹션 ── */
+section{margin-bottom:3.25rem}
+.sec-head{display:flex;align-items:baseline;gap:.9rem;border-bottom:1px solid var(--hair);
+  padding-bottom:.6rem;margin-bottom:1.5rem}
+.sec-n{font-family:var(--mono);font-size:.78rem;color:var(--accent);font-weight:600}
+h2{font-size:1.5rem}
+h3{font-size:1.06rem;margin:2rem 0 .7rem;color:var(--ink)}
+p{margin:0 0 1rem;max-width:65ch}
+strong{font-weight:700;color:var(--ink)}
+a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
+
+/* ── 정정 배너: 이 문서의 핵심 ── */
+.correction{background:var(--surface);border:1px solid var(--hair);border-left:4px solid var(--warn);
+  padding:1.4rem 1.6rem;margin-bottom:2.5rem}
+.correction .tag{font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--warn);font-weight:600;display:block;margin-bottom:.6rem}
+.correction p{margin:0;max-width:none;font-size:.97rem;color:var(--ink-2)}
+.correction p+p{margin-top:.7rem}
+
+/* ── 데이터 테이블: 카드가 아니라 원장 ── */
+.tw{overflow-x:auto;margin:1.25rem 0;border-top:1px solid var(--ink);border-bottom:1px solid var(--hair)}
+table{width:100%;border-collapse:collapse;font-size:.87rem;min-width:34rem}
+th{font-family:var(--mono);font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--muted);font-weight:500;text-align:right;padding:.7rem .55rem;
+  border-bottom:1px solid var(--hair);white-space:nowrap}
+th:first-child{text-align:left}
+td{padding:.62rem .55rem;border-bottom:1px solid var(--hair);text-align:right;
+  font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+td:first-child{text-align:left;font-family:var(--sans);font-weight:400;white-space:normal}
+tbody tr:last-child td{border-bottom:none}
+tr.hl td{background:var(--accent-soft)}
+tr.hl td:first-child{font-weight:700}
+caption{caption-side:bottom;text-align:left;font-size:.76rem;color:var(--muted);
+  padding-top:.7rem;font-family:var(--sans)}
+
+/* ── 판독 목록 ── */
+.readings{list-style:none;padding:0;margin:1.5rem 0;counter-reset:r}
+.readings li{counter-increment:r;position:relative;padding:0 0 1.4rem 3rem;margin-bottom:1.4rem;
+  border-bottom:1px solid var(--hair)}
+.readings li:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.readings li::before{content:counter(r,decimal-leading-zero);position:absolute;left:0;top:.15rem;
+  font-family:var(--mono);font-size:.8rem;font-weight:600;color:var(--accent)}
+.readings h3{margin:0 0 .4rem;font-size:1rem}
+.readings p{margin:0;font-size:.94rem;color:var(--ink-2)}
+.readings p+p{margin-top:.55rem}
+
+/* ── 버킷 사다리 ── */
+.buckets{display:grid;gap:0;margin:1.5rem 0;border:1px solid var(--hair);background:var(--surface)}
+.bucket{display:grid;grid-template-columns:5.5rem 1fr auto;gap:1rem;align-items:center;
+  padding:.95rem 1.1rem;border-bottom:1px solid var(--hair)}
+.bucket:last-child{border-bottom:none}
+.bucket .id{font-family:var(--mono);font-size:.74rem;font-weight:600;color:var(--muted)}
+.bucket .nm{font-size:.94rem}
+.bucket .nm i{display:block;font-style:normal;font-size:.8rem;color:var(--muted);margin-top:.15rem}
+.bucket .st{font-family:var(--mono);font-size:.74rem;padding:.2rem .55rem;border:1px solid currentColor;
+  white-space:nowrap}
+.locked{color:var(--dn)} .open{color:var(--accent)}
+
+/* ── 배분 막대 ── */
+.alloc{margin:1.4rem 0}
+.alloc-row{display:grid;grid-template-columns:5rem 1fr 3.2rem;gap:.85rem;align-items:center;
+  padding:.4rem 0;font-size:.87rem}
+.alloc-row .lbl{color:var(--ink-2)}
+.bar{height:.7rem;background:var(--surface-2);position:relative;overflow:hidden}
+.bar span{display:block;height:100%;background:var(--accent)}
+.alloc-row .pct{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right;
+  font-size:.82rem;color:var(--ink-2)}
+
+/* ── 행동 목록 ── */
+.acts{list-style:none;padding:0;margin:1.4rem 0;display:grid;gap:.85rem}
+.acts li{background:var(--surface);border:1px solid var(--hair);border-left:3px solid var(--accent);
+  padding:.95rem 1.1rem;font-size:.93rem;color:var(--ink-2)}
+.acts li.crit{border-left-color:var(--up)}
+.acts li b{display:block;color:var(--ink);font-weight:700;font-size:.97rem;margin-bottom:.3rem;
+  font-family:var(--sans)}
+
+/* ── 인용 ── */
+blockquote{margin:1.4rem 0;padding:.2rem 0 .2rem 1.3rem;border-left:2px solid var(--accent);
+  font-family:var(--serif);font-size:1.02rem;color:var(--ink-2);font-weight:500;line-height:1.65}
+blockquote p{max-width:58ch}
+
+/* ── 한계 ── */
+.limits{list-style:none;padding:0;margin:1.3rem 0;display:grid;gap:.7rem}
+.limits li{padding-left:1.4rem;position:relative;font-size:.92rem;color:var(--ink-2);max-width:65ch}
+.limits li::before{content:"—";position:absolute;left:0;color:var(--muted);font-family:var(--mono)}
+
+/* ── 출처 ── */
+.src{columns:2;column-gap:2.5rem;font-size:.82rem;line-height:1.6}
+.src p{break-inside:avoid;margin:0 0 .7rem;max-width:none;color:var(--muted)}
+.src b{display:block;font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--accent);margin:1.2rem 0 .5rem;font-weight:600}
+.src p:first-child b{margin-top:0}
+@media(max-width:640px){.src{columns:1}}
+
+footer{border-top:2px solid var(--ink);margin-top:3rem;padding:1.5rem 0 4rem;
+  font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+@media(max-width:600px){
+  .bucket{grid-template-columns:1fr auto;gap:.5rem 1rem}
+  .bucket .id{grid-column:1/-1}
+  .alloc-row{grid-template-columns:4.2rem 1fr 3rem}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+<style>
+.live{background:var(--surface);border:1px solid var(--hair);border-top:3px solid var(--accent);
+  padding:1.4rem 1.6rem;margin-bottom:2.5rem}
+.live-head{display:flex;flex-wrap:wrap;gap:.9rem 1.5rem;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--hair);padding-bottom:.9rem;margin-bottom:1rem}
+.live .tag{font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--accent);font-weight:600}
+.grade{display:flex;align-items:baseline;gap:.6rem}
+.grade b{font-family:var(--serif);font-size:1.6rem;line-height:1}
+.grade span{font-family:var(--mono);font-size:.74rem;color:var(--muted)}
+.grade.sig-ok b{color:var(--accent)} .grade.sig-mid b{color:var(--warn)} .grade.sig-bad b{color:var(--up)}
+.sigs{list-style:none;margin:0;padding:0;display:grid;gap:.55rem}
+.sigs li{display:grid;grid-template-columns:3.2rem 1fr;gap:.85rem;align-items:start;font-size:.88rem;
+  color:var(--ink-2);line-height:1.6}
+.sig-tag{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-align:center;
+  padding:.16rem 0;border:1px solid currentColor;white-space:nowrap;margin-top:.15rem}
+.sigs li.sig-ok .sig-tag{color:var(--accent)}
+.sigs li.sig-mid .sig-tag{color:var(--warn)}
+.sigs li.sig-bad .sig-tag{color:var(--up)}
+.notes{margin-top:1.1rem;padding-top:.95rem;border-top:1px solid var(--hair)}
+.notes b{font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);font-weight:600}
+.notes ul{margin:.55rem 0 0;padding-left:1.1rem;font-size:.88rem;color:var(--ink-2);line-height:1.65}
+.notes li{margin-bottom:.3rem}
+@media(max-width:520px){.sigs li{grid-template-columns:1fr;gap:.25rem}
+  .sig-tag{justify-self:start;padding:.16rem .5rem}}
+</style>
+
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">개인 자산배분 설계 · 2026년 9월 3일</div>
+  <h1>2026 자산배분 설계서</h1>
+  <p class="sub">국민연금 목표배분과 글로벌 표준을 개인이 살 수 있는 자산으로 번역하고,
+     주거 이벤트가 걸린 자금을 먼저 떼어낸 뒤 남는 돈으로만 위험을 지는 설계. 시장 수치는 매일 자동 갱신된다.</p>
+  <div class="meta">
+    <span>시세 갱신 <b>2026-09-03 10:50 KST</b></span>
+    <span>설계 기준일 <b>2026-09-03</b></span>
+    <span>데이터 <b>yfinance · 무료</b></span>
+    <span>개인 수치 <b>텔레그램에만</b></span>
+  </div>
+</header>
+
+<div class="live">
+  <div class="live-head">
+    <span class="tag">라이브 · 매일 자동 갱신</span>
+    <div class="grade sig-mid"><b>중립</b>
+      <span>신호 7개 중 위험 3개</span></div>
+  </div>
+  <ul class="sigs"><li class="sig-ok"><span class="sig-tag">양호</span><span>코스피 6,655 · 200일선 +10.5% (상승 추세) · 고점대비 -27.0%</span></li><li class="sig-bad"><span class="sig-tag">위험</span><span>코스닥 799 · 200일선 -19.3% (하락 추세) · 고점대비 -34.8%</span></li><li class="sig-ok"><span class="sig-tag">양호</span><span>S&amp;P500 7,667 · 200일선 +7.6% (상승 추세) · 고점대비 -1.7%</span></li><li class="sig-ok"><span class="sig-tag">양호</span><span>VIX 15.2 — 안정</span></li><li class="sig-bad"><span class="sig-tag">위험</span><span>미 10년 4.80% — 1년 최고권. 장기채 금지, 주식 밸류에이션 압박</span></li><li class="sig-ok"><span class="sig-tag">양호</span><span>원/달러 1,358 (고점대비 -12.6%) — 환전 조건 양호</span></li><li class="sig-bad"><span class="sig-tag">위험</span><span>필라델피아반도체 고점대비 -22.5% — 사이클 둔화. 코스피 시총 절반이 메모리 2종목이라 국내 지수에 직결</span></li></ul>
+  <div class="notes"><b>오늘 눈에 띄는 것</b><ul><li>금 고점대비 -16.3% — 목표 10% 분할 진입 조건 충족</li><li>코스닥만 200일선 아래 — 국내는 대형주로만, 중소형 분산 보류</li><li>미 10년 4.80% — 장기채(TLT류) 매수 금지, 채권은 단기·중기로만</li></ul></div>
+</div>
+
+<div class="correction">
+  <span class="tag">이 문서가 뉴스와 다른 이유</span>
+  <p>이 설계를 위해 모은 기사들은 전부 <strong>6월 고점 시점</strong>을 말하고 있었다.
+     “코스피가 6개월 만에 두 배 올랐다”, “사상 첫 9,000 돌파”, “금이 사상 최고가”.
+     그 기사만 믿고 짰다면 결론은 <strong>정반대로 틀렸을 것</strong>이다.</p>
+  <p>오늘 종가로 다시 재면 코스피는 고점 대비 <span class="dn num">-27.1%</span>,
+     SK하이닉스는 <span class="dn num">-44.3%</span>, 금은 <span class="dn num">-16.4%</span>다.
+     <strong>한국 반도체 랠리는 6월 22일에 꼭지를 찍고 이미 되돌렸다.</strong>
+     아래 모든 숫자는 뉴스가 아니라 오늘 시장 데이터로 계산했고,
+     봇은 매일 18:30에 같은 계산을 다시 한다.</p>
+</div>
+
+<section>
+  <div class="sec-head"><span class="sec-n">01</span><h2>오늘의 시장</h2></div>
+  <p>한국 증시 관례대로 <span class="up">상승은 빨강</span>,
+     <span class="dn">하락은 파랑</span>으로 표시했다. 매일 자동 갱신된다.</p>
+  
+  <div class="tw">
+  <table>
+    <caption>200일선 대비는 추세, 고점 대비는 1년 최고가에서의 조정 폭을 뜻한다.</caption>
+    <thead><tr><th>자산</th><th>현재가</th><th>1년 고점 대비</th><th>200일선 대비</th><th>연초 대비</th></tr></thead>
+    <tbody><tr class="hl"><td>코스피</td><td class="num">6,654.9</td><td class="num dn">-27.0%</td><td class="num up">+10.5%</td><td class="num up">+54.4%</td></tr><tr class="hl"><td>코스닥</td><td class="num">799.3</td><td class="num dn">-34.8%</td><td class="num dn">-19.3%</td><td class="num dn">-15.5%</td></tr><tr><td>삼성전자</td><td class="num">253,000</td><td class="num dn">-30.1%</td><td class="num up">+20.1%</td><td class="num up">+97.5%</td></tr><tr><td>SK하이닉스</td><td class="num">1,630,000</td><td class="num dn">-44.1%</td><td class="num up">+25.3%</td><td class="num up">+141.3%</td></tr><tr><td>필라델피아반도체</td><td class="num">11,339</td><td class="num dn">-22.5%</td><td class="num up">+16.0%</td><td class="num up">+53.9%</td></tr><tr><td>S&amp;P500</td><td class="num">7,666.6</td><td class="num dn">-1.7%</td><td class="num up">+7.6%</td><td class="num up">+11.8%</td></tr><tr><td>나스닥</td><td class="num">26,218</td><td class="num dn">-3.2%</td><td class="num up">+7.7%</td><td class="num up">+12.8%</td></tr><tr class="hl"><td>미국채10년</td><td class="num">4.80%</td><td class="num ">+0.0%</td><td class="num up">+10.2%</td><td class="num up">+14.5%</td></tr><tr><td>VIX</td><td class="num">15.2</td><td class="num dn">-51.0%</td><td class="num dn">-17.3%</td><td class="num up">+4.8%</td></tr><tr><td>원/달러</td><td class="num">1,358.2</td><td class="num dn">-12.6%</td><td class="num dn">-7.7%</td><td class="num dn">-5.9%</td></tr><tr><td>금</td><td class="num">$4,453</td><td class="num dn">-16.3%</td><td class="num dn">-1.4%</td><td class="num up">+3.2%</td></tr><tr><td>비트코인</td><td class="num">$77,294</td><td class="num dn">-38.0%</td><td class="num up">+11.2%</td><td class="num dn">-12.9%</td></tr></tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-n">02</span><h2>이 표에서 읽어야 할 다섯 가지</h2></div>
+  <ol class="readings">
+    <li>
+      <h3>한국은 이미 조정을 받았다</h3>
+      <p>코스피 −27%, SK하이닉스 −44%. 6월 기사를 근거로 “너무 올랐으니 사지 마라”고 말하는 건
+         석 달 늦은 판단이다. 동시에 연초 대비는 여전히 +54%다 —
+         <strong>터진 게 아니라 되돌린 것</strong>에 가깝다.</p>
+    </li>
+    <li>
+      <h3>한국 시장 내부가 갈라졌다</h3>
+      <p>코스피는 아직 200일선 <strong>위</strong>(+10.3%)지만, 코스닥은 200일선
+         <strong>아래</strong>(−19.1%)에 연초 대비도 마이너스다.
+         추세 기준으로 대형주는 살아 있고 중소형주는 이미 하락장이다.</p>
+      <p>따라서 지금 국면에서 “중소형·코스닥으로 분산”은 분산이 아니라 하락 추세 매수다.</p>
+    </li>
+    <li>
+      <h3>미국은 조용하다 — 분산이 실제로 작동했다</h3>
+      <p>S&amp;P 500은 고점 대비 −1.7%, VIX는 15.2로 1년 평균보다 낮다.
+         <strong>한국의 −27%는 글로벌 리스크오프가 아니라 한국·반도체 고유 사건이다.</strong>
+         해외 비중을 두는 이유가 정확히 이것이고, 이번에 그 값을 했다.</p>
+    </li>
+    <li>
+      <h3>진짜 위험은 주식이 아니라 금리다</h3>
+      <p>미 10년물 4.80%는 <strong>1년 최고치</strong>이고 연초 대비 +14.5%다.
+         한국은행도 8월 27일 2.75% → 3.00%로 <strong>인하가 아니라 인상</strong>했고,
+         국고채 10년은 4% 초반에 상방 위험이 우세하다.</p>
+      <p>그래서 장기채는 지금도 사지 않는다. 다만 4.8%는 역사적으로 나쁘지 않은 캐리라
+         <strong>중기(3–7년) 구간은 이제 담을 만하다</strong> — 6월 판단에서 바뀐 지점이다.</p>
+    </li>
+    <li>
+      <h3>금과 비트코인이 동시에 크게 빠졌다</h3>
+      <p>금 −16.3%, 비트코인 −38%. 실질금리가 오르는 국면에서 이자를 주지 않는 자산이
+         밀리는 교과서적 반응이다. 덕분에 금 목표 10%는
+         <strong>사상 최고가 매수가 아니라 고점 대비 −16% 지점 매수</strong>가 됐다.
+         서두를 이유는 없지만 분할 진입을 시작할 조건은 갖춰졌다.</p>
+    </li>
+  </ol>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-n">03</span><h2>설계의 척추 — 버킷 분리</h2></div>
+  <blockquote><p>연기금은 부채를 먼저 매칭하고 남는 돈으로만 위험을 진다.
+    개인도 같다. 몇 달 뒤 나갈 돈은 어떤 논리로도 주식이 될 수 없다.</p></blockquote>
+  <p>세계 어느 연기금도 몇 달 뒤 지급할 연금을 주식에 넣지 않는다. 이것이 LDI(부채연계투자)이고,
+     개인에게 옮기면 <strong>주거자금을 먼저 떼어내는 것</strong>이 된다.
+     만기 3년 이내 자금은 현금이 정답이라는 게 모닝스타·피델리티의 일치된 결론이다.</p>
+  <div class="buckets">
+    <div class="bucket"><span class="id">버킷 0</span>
+      <span class="nm">주거자금<i>보증금 + 매수 계약금 · 만기는 개인 설정값</i></span>
+      <span class="st locked">현금 100%</span></div>
+    <div class="bucket"><span class="id">버킷 1</span>
+      <span class="nm">비상금<i>생활비 6개월 · 파킹통장</i></span>
+      <span class="st locked">투자 금지</span></div>
+    <div class="bucket"><span class="id">버킷 2</span>
+      <span class="nm">세제혜택 장기자금<i>연금저축 · IRP · 10년 이상</i></span>
+      <span class="st open">모델 배분</span></div>
+    <div class="bucket"><span class="id">버킷 3</span>
+      <span class="nm">중기자금<i>ISA · 3–10년</i></span>
+      <span class="st open">모델 배분</span></div>
+    <div class="bucket"><span class="id">버킷 4</span>
+      <span class="nm">일반계좌<i>여유분 · 해외 직접투자</i></span>
+      <span class="st open">모델 + 위성</span></div>
+  </div>
+  <p><strong>버킷 0을 어디에 둘 것인가</strong> — 수익이 목적이 아니다. 원금과 유동성이 전부다.
+     파킹통장 연 2.5–3.5%, 증권사 CMA 3.0–3.7%, 단기 MMF 3.5–4.0%.
+     예금자보호가 1억원이므로 <strong>금융기관당 1억 이하로 분산</strong>한다.
+     CMA는 종금형만 보호된다는 점에 주의.</p>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-n">04</span><h2>목표 배분 — 국민연금의 개인 번역</h2></div>
+  <p>국민연금 2026년 목표배분(국내주식 20.8 / 해외주식 34.7 / 국내채권 23.1 / 해외채권 7.4 / 대체 14.0)을
+     출발점으로 삼되, 개인이 접근할 수 없는 자산과 현재 국면 위험을 반영해 조정했다.</p>
+  <div class="tw">
+  <table>
+    <caption>국민연금은 2026년 상반기 +27.2%(국내주식 +107.4%, 국내채권 −3.0%)를 기록했다. 금리 상승기에 채권이 안전자산이 아니라는 증거다.</caption>
+    <thead><tr><th>자산군</th><th>국민연금</th><th>본 모델</th><th>조정 근거</th></tr></thead>
+    <tbody>
+      <tr><td>해외주식</td><td class="num">34.7%</td><td class="num">40%</td>
+        <td style="text-align:left;font-family:var(--sans);white-space:normal">개인은 대체투자 접근 불가 → 주식이 흡수. 한국 시총은 전 세계의 2% 내외</td></tr>
+      <tr><td>국내주식</td><td class="num">20.8%</td><td class="num">15%</td>
+        <td style="text-align:left;font-family:var(--sans);white-space:normal">코스피 시총 절반이 메모리 2종목. 20.8%는 전망이 아니라 사후 추인</td></tr>
+      <tr><td>채권</td><td class="num">30.5%</td><td class="num">25%</td>
+        <td style="text-align:left;font-family:var(--sans);white-space:normal">국내 단기 15 + 미국 중기 10. <strong>장기채 배제</strong></td></tr>
+      <tr><td>금</td><td class="num">대체 14%</td><td class="num">10%</td>
+        <td style="text-align:left;font-family:var(--sans);white-space:normal">대체투자 대용. 6–12개월 분할 진입</td></tr>
+      <tr><td>리츠</td><td class="num">대체 포함</td><td class="num">5%</td>
+        <td style="text-align:left;font-family:var(--sans);white-space:normal">주택 매수 후에는 0%로 — 부동산 중복 노출</td></tr>
+      <tr><td>현금</td><td class="num">—</td><td class="num">5%</td>
+        <td style="text-align:left;font-family:var(--sans);white-space:normal">리밸런싱 실탄</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>금액대별 — 작을수록 종목을 줄인다</h3>
+  <p>소액에서 종목 수를 늘리면 매매 최소단위 때문에 목표비중을 맞출 수 없고 비용만 는다.</p>
+  <div class="tw">
+  <table>
+    <thead><tr><th>티어</th><th>투자원금</th><th>계좌</th><th>상품 수</th><th>특징</th></tr></thead>
+    <tbody>
+      <tr><td>Tier 1</td><td class="num">~3,000만</td><td class="num">연금저축</td><td class="num">4</td>
+        <td style="text-align:left;font-family:var(--sans);white-space:normal">해외 55 / 국내 15 / 채권 20 / 금 10. 리츠·현금 없음</td></tr>
+      <tr><td>Tier 2</td><td class="num">3,000만~1억</td><td class="num">연금+IRP+ISA</td><td class="num">6</td>
+        <td style="text-align:left;font-family:var(--sans);white-space:normal">코어 모델 그대로</td></tr>
+      <tr><td>Tier 3</td><td class="num">1억~3억</td><td class="num">+ 일반계좌</td><td class="num">8</td>
+        <td style="text-align:left;font-family:var(--sans);white-space:normal">위성 10% 추가. 레버리지·인버스 금지</td></tr>
+      <tr><td>Tier 4</td><td class="num">3억~</td><td class="num">전 계좌</td><td class="num">8+</td>
+        <td style="text-align:left;font-family:var(--sans);white-space:normal">배당 분리과세 활용, 현금 10%로 확대</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>코어 모델 (Tier 2 이상)</h3>
+  <div class="alloc">
+    <div class="alloc-row"><span class="lbl">해외주식</span><span class="bar"><span style="width:100%"></span></span><span class="pct">40%</span></div>
+    <div class="alloc-row"><span class="lbl">채권</span><span class="bar"><span style="width:62.5%"></span></span><span class="pct">25%</span></div>
+    <div class="alloc-row"><span class="lbl">국내주식</span><span class="bar"><span style="width:37.5%"></span></span><span class="pct">15%</span></div>
+    <div class="alloc-row"><span class="lbl">금</span><span class="bar"><span style="width:25%"></span></span><span class="pct">10%</span></div>
+    <div class="alloc-row"><span class="lbl">리츠</span><span class="bar"><span style="width:12.5%"></span></span><span class="pct">5%</span></div>
+    <div class="alloc-row"><span class="lbl">현금</span><span class="bar"><span style="width:12.5%"></span></span><span class="pct">5%</span></div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-n">05</span><h2>계좌 배치 — 가장 확실한 수익</h2></div>
+  <p>같은 ETF라도 <strong>어느 계좌에서 사느냐</strong>로 세후 수익이 갈린다.
+     시장 예측과 달리 이건 확정된 규칙이라, 개인 투자자가 확실히 이길 수 있는 유일한 영역이다.</p>
+  <div class="tw">
+  <table>
+    <thead><tr><th>계좌</th><th>여기에 넣을 것</th><th>이유</th></tr></thead>
+    <tbody>
+      <tr><td>연금저축펀드</td>
+        <td style="text-align:left;font-family:var(--sans);white-space:normal">국내상장 해외 ETF<br>(S&amp;P500 · 나스닥100 · 금)</td>
+        <td style="text-align:left;font-family:var(--sans);white-space:normal">일반계좌면 배당소득세 15.4%. 연금계좌는 전액 과세이연 + 인출 시 연금소득세 3.3–5.5% + 계좌 내 손익통산</td></tr>
+      <tr><td>IRP</td>
+        <td style="text-align:left;font-family:var(--sans);white-space:normal">채권 · 현금성</td>
+        <td style="text-align:left;font-family:var(--sans);white-space:normal">안전자산 30% 의무가 있다. 이 30%를 포트폴리오의 채권 몫으로 쓰면 규제와 배분이 동시에 해결된다</td></tr>
+      <tr><td>ISA</td>
+        <td style="text-align:left;font-family:var(--sans);white-space:normal">국내 주식 · 국내 ETF · 리츠</td>
+        <td style="text-align:left;font-family:var(--sans);white-space:normal">계좌 내 손익통산 + 비과세 500만(서민형 1,000만). 만기 시 연금 전환하면 300만원 추가 세액공제</td></tr>
+      <tr><td>일반 위탁계좌</td>
+        <td style="text-align:left;font-family:var(--sans);white-space:normal">해외 직접투자</td>
+        <td style="text-align:left;font-family:var(--sans);white-space:normal">양도세 22%지만 연 250만원 공제 + 손익통산. 연말에 손실 종목을 정리해 공제한도를 쓸 수 있는 유일한 계좌</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>돈 넣는 순서</h3>
+  <p><span class="num">①</span> 비상금 6개월 →
+     <span class="num">②</span> 연금저축 600만 →
+     <span class="num">③</span> IRP 300만 →
+     <span class="num">④</span> ISA →
+     <span class="num">⑤</span> 일반계좌</p>
+  <p>②③은 <strong>납입만 해도 세액공제 13.2%가 확정 수익</strong>이다. 900만원을 채우면
+     약 <strong>118.8만원</strong>을 국가가 돌려준다. 어떤 종목보다 확실하므로 한도 소진이 최우선이다.
+     다만 연금계좌는 중도인출 시 기타소득세 16.5%라, <strong>버킷 0이 부족하면 이걸 미룬다.</strong></p>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-n">06</span><h2>2026년 세제 — 확정본</h2></div>
+  <div class="tw">
+  <table>
+    <caption>슈퍼 ISA·생산적금융 ISA 일부는 정부안 단계로, 국회 심의에서 바뀔 수 있다.</caption>
+    <thead><tr><th>제도</th><th>2026년 내용</th></tr></thead>
+    <tbody>
+      <tr><td>금융투자소득세</td><td style="text-align:left;font-family:var(--sans);white-space:normal"><strong>폐지</strong> (2025-01-01부)</td></tr>
+      <tr><td>국내주식 양도세</td><td style="text-align:left;font-family:var(--sans);white-space:normal">대주주(종목당 50억)만 과세 · 2026–2028 한시</td></tr>
+      <tr><td>배당소득 분리과세</td><td style="text-align:left;font-family:var(--sans);white-space:normal"><strong>신설</strong> · 2천만↓ 14%, 2천만–3억 20%, 3억–50억 25% · <strong>국내 상장사 배당만</strong>(미국주식 제외)</td></tr>
+      <tr><td>해외주식 양도세</td><td style="text-align:left;font-family:var(--sans);white-space:normal">22% · 기본공제 연 250만원(국내외 합산) · 손익통산 · 다음해 5월 신고</td></tr>
+      <tr class="hl"><td>연금저축 + IRP</td><td style="text-align:left;font-family:var(--sans);white-space:normal">합산 <strong>연 900만원</strong> 세액공제 (연금저축 단독 600만, 나머지 300만은 IRP 필수)</td></tr>
+      <tr class="hl"><td>슈퍼 ISA</td><td style="text-align:left;font-family:var(--sans);white-space:normal">연 한도 <strong>4,000만원</strong> · 총 <strong>2억원</strong> · 비과세 일반형 500만 / 서민형 1,000만 · 국내투자형 ISA 신설</td></tr>
+      <tr><td>예금자보호</td><td style="text-align:left;font-family:var(--sans);white-space:normal">1인·1금융기관당 <strong>1억원</strong> (2025-09-01 시행, 소급 적용)</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-n">07</span><h2>지금 할 일</h2></div>
+  <ul class="acts">
+    <li class="crit"><b>주거자금을 먼저 안전자산으로 확정한다</b>
+      이 돈에 주식·채권형 펀드가 섞여 있으면 즉시 정리한다.
+      코스피가 석 달 만에 −27% 빠지는 걸 방금 봤다. 몇 달은 그런 일이 한 번 더 일어나기 충분한 시간이다.</li>
+    <li class="crit"><b>연금저축 600만 + IRP 300만을 12월 31일 전에 소진한다</b>
+      900만원 전액 납입 시 확정 환급 약 118.8만원(공제율 13.2% 기준).
+      단, 버킷 0이 부족하면 이걸 미룬다 — 넣었다 빼면 기타소득세 16.5%로 손해다.</li>
+    <li><b>국내주식은 대형주로만, 6개월 분할</b>
+      −27% 조정 후라 6월보다 조건이 낫다. 그러나 코스닥은 200일선 아래에 연초 대비 −15%다.
+      중소형·코스닥 분산은 지금 하지 않는다.</li>
+    <li><b>금은 분할 진입을 시작한다</b>
+      1월 고점 대비 −16.3%. “사상 최고가 매수”라는 걱정은 해소됐다.
+      다만 실질금리가 더 오르면 더 빠지므로 6–12개월에 나눠 채운다.</li>
+    <li><b>장기채는 여전히 금지, 중기채는 허용</b>
+      미 10년 4.80%는 1년 최고치다. 국내 단기채 + 미국 중기채(3–7년) 조합으로 목표 25%를 채운다.</li>
+    <li><b>해외주식은 월 적립으로 자연 분할되게 둔다</b>
+      원/달러 1,357로 환전 조건은 좋아졌지만 S&amp;P 500 선행 PER은 22.4배다.
+      한 번에 채우지 않는다 — 즉, 아무것도 하지 않아도 된다.</li>
+    <li><b>주거가 확정되면 이 문서를 다시 짠다</b>
+      주거 결과가 버킷 0의 크기와 만기를 바꾸고, 그게 나머지 전부를 바꾼다.
+      매수하면 순자산의 70%가 부동산이 되므로 리츠 5%→0%, 국내주식 15%→10%로 재조정한다.</li>
+  </ul>
+
+  <h3>월 적립금을 나누는 법 — 예시</h3>
+  <div class="tw">
+  <table>
+    <thead><tr><th>순서</th><th>계좌</th><th>예시 A</th><th>예시 B</th><th>연 누계</th></tr></thead>
+    <tbody>
+      <tr><td>①</td><td>연금저축</td><td class="num">50만</td><td class="num">50만</td><td class="num">600만</td></tr>
+      <tr><td>②</td><td>IRP</td><td class="num">25만</td><td class="num">25만</td><td class="num">300만</td></tr>
+      <tr><td>③</td><td>ISA</td><td class="num">25만</td><td class="num">125만</td><td class="num">300–1,500만</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <blockquote><p>리밸런싱은 매도가 아니라 신규 납입으로 한다.
+    꾸준한 적립이면 이탈한 자산군을 매수만 해도 대부분 복원된다. 매매비용도 세금도 0이다.</p></blockquote>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-n">08</span><h2>이 설계가 틀릴 수 있는 지점</h2></div>
+  <ul class="limits">
+    <li>코스피가 여기서 다시 갈 수 있다. 선행 PER 8.5배는 실제로 세계 최저다(미국 20.4 / 일본 16.5 / 대만 21.8).
+        국내주식을 15%로 낮춘 판단이 기회비용이 될 수 있다.
+        이 설계의 목적함수는 수익 극대화가 아니라 <strong>주거 이벤트를 앞둔 사람의 생존</strong>이다.</li>
+    <li>“PER 8.5배라 싸다”와 “고점 대비 −27%”가 동시에 참인 이유는 이익 전망이 주가보다 빨리 올랐기 때문이다.
+        <strong>이 밸류에이션은 반도체 이익 전망이 맞다는 가정 위에 서 있다.</strong>
+        주가가 −27% 빠졌다는 건 시장이 그 가정을 의심하기 시작했다는 뜻이다.</li>
+    <li>금은 고점 대비 −16%지만 하락 추세일 수 있다. 실질금리가 더 오르면 더 빠진다. 분할이 유일한 방어다.</li>
+    <li>배당소득 분리과세와 슈퍼 ISA 일부는 정부안 단계다. 국회에서 바뀌면 계좌 배치를 다시 짜야 한다.</li>
+    <li>원/달러 1,357에서 해외자산 40%를 채운다는 건 환위험을 진다는 뜻이다.
+        원화 강세 전망이 맞으면 손해다. 해외채권만 환헤지로 두는 게 표준이지만 이건 선택의 문제다.</li>
+    <li>pykrx가 KRX 로그인 필수로 바뀌어 삼성전자+SK하이닉스의 코스피 시총 비중을 라이브로 못 뽑는다.
+        봇은 필라델피아반도체 지수를 대리 신호로 쓴다.</li>
+  </ul>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-n">09</span><h2>출처</h2></div>
+  <div class="src">
+    <p><b>가계 · 개인 투자 실태</b>
+      <a href="https://mods.go.kr/board.es?mid=a10301010000&amp;bid=215&amp;list_no=439535&amp;act=view&amp;mainXml=Y">2025년 가계금융복지조사 결과 (국가데이터처)</a> ·
+      <a href="https://www.bok.or.kr/portal/bbs/B0000501/view.do?menuNo=201264&amp;nttId=10094917">같은 조사 (한국은행)</a> ·
+      <a href="https://www.bok.or.kr/portal/bbs/B0000347/view.do?nttId=10090510&amp;menuNo=201106">서학개미, 이제는 분산투자가 필요할 때 (한국은행)</a> ·
+      <a href="https://biz.heraldcorp.com/article/10739334">美 주식 보관액 300조원 (헤럴드경제)</a></p>
+    <p><b>연기금 · 기관</b>
+      <a href="https://fund.nps.or.kr/fileDown.do?atchFileId=FL25001236&amp;atchFileSn=1">2026년도 국민연금기금운용계획(안) 의결문</a> ·
+      <a href="https://www.korea.kr/news/policyNewsView.do?newsId=148965365">국내주식 목표비중 20.8% 상향 (정책브리핑)</a> ·
+      <a href="https://fund.nps.or.kr/oprtplcy/astaprtplcy/getOHEC0005M0.do">국민연금 자산배분</a> ·
+      <a href="https://workplace.vanguard.com/investment/strategies/tdf-glide-path.html">Vanguard target-date glide path</a></p>
+    <p><b>시장 국면</b>
+      <a href="https://www.fnnews.com/news/202606181831209006">코스피 9000 돌파 (파이낸셜뉴스)</a> ·
+      <a href="https://biz.heraldcorp.com/article/10757766">삼전닉스 코스피 비중 50% 돌파 (헤럴드경제)</a> ·
+      <a href="https://www.ebn.co.kr/news/articleView.html?idxno=1722168">역대급 저평가 코스피 (EBN)</a> ·
+      <a href="https://www.seoul.co.kr/news/economy/finance/2026/08/24/20260824031001">8월 금통위 (서울신문)</a> ·
+      <a href="https://www.kcmi.re.kr/publications/pub_detail_view?syear=2026&amp;zcd=002001016&amp;zno=1920&amp;cno=6790">2026 하반기 전망과 자산배분 전략 (자본시장연구원)</a> ·
+      <a href="https://www.federalreserve.gov/monetarypolicy/fomcminutes20260729.htm">FOMC Minutes, Jul 2026</a></p>
+    <p><b>세제</b>
+      <a href="https://wealthmoa.com/korea-stock-tax-2026/">한국 주식 세금 완전 정리 2026</a> ·
+      <a href="https://kbthink.com/investment/issues/dividend-income-separate-taxation.html">배당소득 분리과세 (KB)</a> ·
+      <a href="https://cashscop.com/isa-reform-2026/">2026 ISA 개편안</a> ·
+      <a href="https://www.kiwoomam.com/lounge/KI0502010102M?kijaNo=640">해외 ETF, 연금계좌가 유리한 이유 (키움)</a> ·
+      <a href="https://www.fsc.go.kr/no010107/84605">예금보호 1억원 (금융위원회)</a></p>
+    <p><b>방법론</b>
+      <a href="https://awealthofcommonsense.com/2014/03/larry-swedroe-525-rebalancing-rule/">Swedroe 5/25 Rule</a> ·
+      <a href="https://www.bogleheads.org/wiki/Rebalancing">Rebalancing (Bogleheads)</a> ·
+      <a href="https://www.morningstar.com/personal-finance/why-cash-is-still-king-short-term-goals">Why Cash Is Still King for Short-Term Goals (Morningstar)</a> ·
+      <a href="https://www.fidelity.com/learning-center/trading-investing/investing-for-short-term-goals">Short-term goals (Fidelity)</a></p>
+    <p><b>시장 데이터</b>
+      시세는 2026-09-03 종가, yfinance 수집. 200일 이동평균·고점 대비·연초 대비는 직접 계산.</p>
+  </div>
+</section>
+
+<footer>
+  시세는 매일 자동 갱신 · 설계 본문은 2026-09-03 기준<br>
+  개인 보유액·이탈도·D-day 등 사적인 수치는 이 페이지에 싣지 않는다 — 텔레그램 브리핑에만 있다.<br>
+  이 문서는 개인 자산배분 기록이며 투자 권유가 아니다. 최종 판단과 책임은 본인에게 있다.
+</footer>
+
+</div>
